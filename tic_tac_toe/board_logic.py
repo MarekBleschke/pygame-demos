@@ -1,13 +1,14 @@
 from dataclasses import dataclass, field
 from enum import Enum, auto
 from itertools import product
-from typing import Optional
+from typing import Optional, Any
 
 
 class BoardLogic:
     """
     Handle game logic of the board. Keeps current state of marks board state (i.e. win/draw).
     """
+
     board_size: int
     state: "BoardState"
     _tiles: dict[tuple[int, int], "BoardLogicTile"]
@@ -21,15 +22,12 @@ class BoardLogic:
 
         self._initialize_tiles()
 
-    def _initialize_tiles(self):
-        """ Generate mapping of coordinates to the tiles of the board. """
+    def _initialize_tiles(self) -> None:
+        """Generate mapping of coordinates to the tiles of the board."""
         self._tiles = {}
 
         for row, col in product(range(self.board_size), range(self.board_size)):
-            self._tiles[(row, col)] = BoardLogicTile(
-                row=row,
-                column=col
-            )
+            self._tiles[(row, col)] = BoardLogicTile(row=row, column=col)
 
     def update(self, coordinates: tuple[int, int], mark: "BoardLogicTile.MarkEnum") -> bool:
         """
@@ -45,11 +43,14 @@ class BoardLogic:
             return True
         return False
 
-    def _set_board_state_after_last_mark(self, marked_tile: "BoardLogicTile"):
+    def _set_board_state_after_last_mark(self, marked_tile: "BoardLogicTile") -> None:
         """
         Sets board's proper state depending on the last mark.
         We only need to check rows, cols and diagonals for the last checked mark.
         """
+        if marked_tile.mark is None:
+            return
+
         self.state.add_marked_tile(marked_tile)
 
         tiles_row = self._get_tiles_from_row(marked_tile.row)
@@ -58,18 +59,22 @@ class BoardLogic:
 
         tiles_column = self._get_tiles_from_column(marked_tile.column)
         if self._check_if_all_tiles_marked_as(tiles_column, marked_tile.mark):
-            self.state.set_win_status(winning_group=tiles_column,
-                                      winning_group_type=BoardState.WinningGroupTypeEnum.COLUMN)
+            self.state.set_win_status(
+                winning_group=tiles_column, winning_group_type=BoardState.WinningGroupTypeEnum.COLUMN
+            )
 
         main_diagonal_tiles = self._get_tiles_from_main_diagonal()
         if self._check_if_all_tiles_marked_as(main_diagonal_tiles, marked_tile.mark):
-            self.state.set_win_status(winning_group=main_diagonal_tiles,
-                                      winning_group_type=BoardState.WinningGroupTypeEnum.DIAGONAL_MAIN)
+            self.state.set_win_status(
+                winning_group=main_diagonal_tiles, winning_group_type=BoardState.WinningGroupTypeEnum.DIAGONAL_MAIN
+            )
 
         secondary_diagonal_tiles = self._get_tiles_from_secondary_diagonal()
         if self._check_if_all_tiles_marked_as(secondary_diagonal_tiles, marked_tile.mark):
-            self.state.set_win_status(winning_group=secondary_diagonal_tiles,
-                                      winning_group_type=BoardState.WinningGroupTypeEnum.DIAGONAL_SECONDARY)
+            self.state.set_win_status(
+                winning_group=secondary_diagonal_tiles,
+                winning_group_type=BoardState.WinningGroupTypeEnum.DIAGONAL_SECONDARY,
+            )
 
         if all([t.mark for t in self._tiles.values()]) and self.state.game_status == BoardState.GameStatusEnum.IN_PLAY:
             self.state.set_draw_status()
@@ -90,10 +95,10 @@ class BoardLogic:
 
     @staticmethod
     def _check_if_all_tiles_marked_as(tiles: list["BoardLogicTile"], mark: "BoardLogicTile.MarkEnum") -> bool:
-        """ Check if all tiles are marked the same as provided mark. """
+        """Check if all tiles are marked the same as provided mark."""
         return all([t.mark == mark for t in tiles])
 
-    def _get_tile_by_coordinates(self, x, y) -> "BoardLogicTile":
+    def _get_tile_by_coordinates(self, x: int, y: int) -> "BoardLogicTile":
         return self._tiles[(x, y)]
 
 
@@ -103,11 +108,12 @@ class BoardLogicTile:
     Representation of a single board tile.
     Keep coordinates of a tile and information about mark.
     """
+
     row: int
     column: int
     mark: Optional["BoardLogicTile.MarkEnum"] = None
 
-    def __init__(self, *args, row, column, **kwargs):
+    def __init__(self, *args: Any, row: int, column: int, **kwargs: Any) -> None:
         super().__init__(*args, **kwargs)
         self.row = row
         self.column = column
@@ -145,10 +151,10 @@ class BoardState:
         self.winning_group = winning_group
         self.winning_group_type = winning_group_type
 
-    def set_draw_status(self):
+    def set_draw_status(self) -> None:
         self.game_status = BoardState.GameStatusEnum.DRAW
         self.winning_group = None
         self.winning_group_type = None
 
-    def add_marked_tile(self, marked_tile: BoardLogicTile):
+    def add_marked_tile(self, marked_tile: BoardLogicTile) -> None:
         self.marked_tiles.append(marked_tile)

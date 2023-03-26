@@ -1,5 +1,3 @@
-from typing import Optional
-
 import pygame
 
 from tic_tac_toe.board_display import BoardDisplay
@@ -13,6 +11,7 @@ class GameManager:
     """
     Handle game state and other game modules.
     """
+
     main_screen: pygame.Surface
     board_logic: BoardLogic
     board_display: BoardDisplay
@@ -26,13 +25,11 @@ class GameManager:
 
     def init_game(self) -> None:
         self.board_logic = BoardLogic(board_size=3)
-        self.board_display = BoardDisplay(main_screen=self.main_screen, board_size=3, background_color=BACKGROUND_COLOR,
-                                          line_color=BOARD_LINE_COLOR)
-        self.header = Header(main_screen=self.main_screen, font=FONT_HEADER, font_color=FONT_HEADER_COLOR)
-        self.players = (
-            Player("Player A", BoardLogicTile.MarkEnum.X),
-            Player("Player B", BoardLogicTile.MarkEnum.O)
+        self.board_display = BoardDisplay(
+            main_screen=self.main_screen, board_size=3, background_color=BACKGROUND_COLOR, line_color=BOARD_LINE_COLOR
         )
+        self.header = Header(main_screen=self.main_screen, font=FONT_HEADER, font_color=FONT_HEADER_COLOR)
+        self.players = (Player("Player A", BoardLogicTile.MarkEnum.X), Player("Player B", BoardLogicTile.MarkEnum.O))
         self.header.text_current_player(self._current_player)
 
     def handle_click(self, click_position: tuple[int, int]) -> None:

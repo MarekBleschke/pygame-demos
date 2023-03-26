@@ -14,15 +14,15 @@ class Header:
         self.font = font
         self.font_color = font_color
 
-    def draw(self):
+    def draw(self) -> None:
         text_pos = self.text.get_rect(centerx=600 / 2, y=40)
         self.main_screen.blit(self.text, text_pos)
 
-    def text_current_player(self, player: Player):
-        self.text = self.font.render(f'Current player: {player.name}', True, self.font_color)
+    def text_current_player(self, player: Player) -> None:
+        self.text = self.font.render(f"Current player: {player.name}", True, self.font_color)
 
-    def text_winning_player(self, player: Player):
-        self.text = self.font.render(f'{player.name} has won', True, self.font_color)
+    def text_winning_player(self, player: Player) -> None:
+        self.text = self.font.render(f"{player.name} has won", True, self.font_color)
 
-    def text_draw(self):
-        self.text = self.font.render('DRAW', True, self.font_color)
+    def text_draw(self) -> None:
+        self.text = self.font.render("DRAW", True, self.font_color)

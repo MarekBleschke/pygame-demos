@@ -1,6 +1,6 @@
 from dataclasses import dataclass
 from itertools import product
-from typing import Optional
+from typing import Optional, Any
 
 import pygame
 
@@ -19,8 +19,9 @@ class BoardDisplay:
     padding: "BoardPadding"
     _tiles: dict[tuple[int, int], "BoardDisplayTile"]
 
-    def __init__(self, main_screen: pygame.Surface, board_size: int, background_color: pygame.Color,
-                 line_color: pygame.Color):
+    def __init__(
+        self, main_screen: pygame.Surface, board_size: int, background_color: pygame.Color, line_color: pygame.Color
+    ):
         if board_size < 3 or board_size > 5:
             raise Exception(f"Invalid board size: {self.board_size}. Supported board sizes: 3, 4 and 5.")
         self.main_screen = main_screen
@@ -36,8 +37,8 @@ class BoardDisplay:
 
         self._initialize_tiles()
 
-    def _initialize_tiles(self):
-        """ Generate mapping of coordinates to the tiles of the board. """
+    def _initialize_tiles(self) -> None:
+        """Generate mapping of coordinates to the tiles of the board."""
         self._tiles = {}
         tile_width = (self.width - self.padding.left - self.padding.right) / self.board_size
         tile_height = (self.height - self.padding.top - self.padding.bottom) / self.board_size
@@ -49,10 +50,10 @@ class BoardDisplay:
                 tile_width,
                 tile_height,
                 row=row,
-                column=col
+                column=col,
             )
 
-    def draw(self, board_state: BoardState):
+    def draw(self, board_state: BoardState) -> None:
         self._draw_board_lines()
         self._draw_marked_tiles(board_state.marked_tiles)
         if board_state.game_status == BoardState.GameStatusEnum.WIN:
@@ -60,7 +61,7 @@ class BoardDisplay:
         self.main_screen.blit(self.board_surface, self.board_position)
 
     def get_coordinates_for_position(self, position: tuple[int, int]) -> Optional[tuple[int, int]]:
-        """ Return tile coordinates for position on main screen. """
+        """Return tile coordinates for position on main screen."""
         board_position = self._convert_screen_position_to_board_position(position)
         for coords, tile in self._tiles.items():
             if tile.collidepoint(board_position):
@@ -74,22 +75,14 @@ class BoardDisplay:
             t1 = self._get_tile_by_coordinates(row_number, 0)
             t2 = self._get_tile_by_coordinates(row_number, self.board_size - 1)
             pygame.draw.line(
-                self.board_surface,
-                self.line_color,
-                (t1.left, t1.bottom),
-                (t2.right, t2.bottom),
-                self.line_width
+                self.board_surface, self.line_color, (t1.left, t1.bottom), (t2.right, t2.bottom), self.line_width
             )
         # vertical lines
         for column_number in range(self.board_size - 1):
             t1 = self._get_tile_by_coordinates(0, column_number)
             t2 = self._get_tile_by_coordinates(self.board_size - 1, column_number)
             pygame.draw.line(
-                self.board_surface,
-                self.line_color,
-                (t1.right, t1.top),
-                (t2.right, t2.bottom),
-                self.line_width
+                self.board_surface, self.line_color, (t1.right, t1.top), (t2.right, t2.bottom), self.line_width
             )
 
     def _draw_marked_tiles(self, marked_tiles: list[BoardLogicTile]) -> None:
@@ -106,10 +99,8 @@ class BoardDisplay:
         if not board_state.game_status == BoardState.GameStatusEnum.WIN:
             return
         sorted_winning_group = self._get_sorted_winning_group(board_state)
-        start_tile = self._get_tile_by_coordinates(sorted_winning_group[0].row,
-                                                   sorted_winning_group[0].column)
-        end_tile = self._get_tile_by_coordinates(sorted_winning_group[-1].row,
-                                                 sorted_winning_group[-1].column)
+        start_tile = self._get_tile_by_coordinates(sorted_winning_group[0].row, sorted_winning_group[0].column)
+        end_tile = self._get_tile_by_coordinates(sorted_winning_group[-1].row, sorted_winning_group[-1].column)
         if board_state.winning_group_type == BoardState.WinningGroupTypeEnum.ROW:
             start_pos = (start_tile.left, start_tile.centery)
             end_pos = (end_tile.right, end_tile.centery)
@@ -128,23 +119,23 @@ class BoardDisplay:
 
     @staticmethod
     def _get_sorted_winning_group(board_state: BoardState) -> list[BoardLogicTile]:
-        """ Sort tiles of row, column or diagonal. """
+        """Sort tiles of row, column or diagonal."""
         if board_state.winning_group_type == BoardState.WinningGroupTypeEnum.ROW:
-            return sorted(board_state.winning_group, key=lambda t: t.column)
+            return sorted(board_state.winning_group or [], key=lambda t: t.column)
         elif board_state.winning_group_type == BoardState.WinningGroupTypeEnum.COLUMN:
-            return sorted(board_state.winning_group, key=lambda t: t.row)
+            return sorted(board_state.winning_group or [], key=lambda t: t.row)
         elif board_state.winning_group_type == BoardState.WinningGroupTypeEnum.DIAGONAL_MAIN:
-            return sorted(board_state.winning_group, key=lambda t: (t.row, t.column))
+            return sorted(board_state.winning_group or [], key=lambda t: (t.row, t.column))
         elif board_state.winning_group_type == BoardState.WinningGroupTypeEnum.DIAGONAL_SECONDARY:
-            return sorted(board_state.winning_group, key=lambda t: (t.row, t.column), reverse=True)
+            return sorted(board_state.winning_group or [], key=lambda t: (t.row, t.column), reverse=True)
         else:
-            return board_state.winning_group
+            return []
 
     def _convert_screen_position_to_board_position(self, pos: tuple[int, int]) -> tuple[int, int]:
         board_pos = (pos[0] - self.board_position[0], pos[1] - self.board_position[1])
         return board_pos
 
-    def _get_tile_by_coordinates(self, x, y) -> pygame.Rect:
+    def _get_tile_by_coordinates(self, x: int, y: int) -> pygame.Rect:
         """(0, 0) is on top left position of the board."""
         return self._tiles[(x, y)]
 
@@ -158,7 +149,10 @@ class BoardPadding:
 
 
 class BoardDisplayTile(pygame.Rect):
-    def __init__(self, *args, row, column, **kwargs):
+    row: int
+    column: int
+
+    def __init__(self, *args: Any, row: int, column: int, **kwargs: Any):
         super().__init__(*args, **kwargs)
         self.row = row
         self.column = column

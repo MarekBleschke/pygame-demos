@@ -1,4 +1,5 @@
 import pygame
+
 pygame.font.init()
 
 SCREEN_SIZE = (600, 600)
