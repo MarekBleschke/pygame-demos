@@ -3,10 +3,6 @@ import pygame
 from tic_tac_toe.game_manager import GameManager
 from tic_tac_toe.constans import SCREEN_SIZE, BACKGROUND_COLOR
 
-# TODO: add lint (flake, mypy, black)
-# TODO: add choosing board size
-# TODO: add option end / play again | exit
-
 pygame.init()
 
 screen = pygame.display.set_mode(SCREEN_SIZE)
